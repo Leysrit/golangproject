@@ -3,6 +3,7 @@ package main
 import (
 	"bwastartup/handler"
 	"bwastartup/user"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
@@ -22,10 +23,23 @@ func main() {
 
 	userHandler := handler.NewUserHandler(userService)
 
+	userByEmail, err := userRepository.FindByEmail("john@gmail.co")
+
+	if err != nil {
+		panic(err)
+	}
+
+	if userByEmail.ID == 0 {
+		fmt.Println("User Not Found")
+	} else {
+		fmt.Println(userByEmail.Name)
+	}
+
 	router := gin.Default()
 
 	api := router.Group("/api/v1")
 	api.POST("/user", userHandler.RegisterUser)
+	api.POST("/session", userHandler.Login)
 
 	router.Run(":8080")
 
