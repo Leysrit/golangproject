@@ -40,6 +40,8 @@ func main() {
 	api := router.Group("/api/v1")
 	api.POST("/user", userHandler.RegisterUser)
 	api.POST("/session", userHandler.Login)
+	api.POST("/email_checkers", userHandler.CheckEmailAvailability)
+	api.GET("/user/fetch", userHandler.FetchUser)
 
 	router.Run(":8080")
 

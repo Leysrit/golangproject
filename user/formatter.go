@@ -6,6 +6,7 @@ type UserFormatter struct {
 	Email      string `json:"email"`
 	Occupation string `json:"occupation"`
 	Token      string `json:"token"`
+	ImageURL   string `json:"image_url"`
 }
 
 func FormatUser(user User, token string) UserFormatter {
@@ -15,5 +16,6 @@ func FormatUser(user User, token string) UserFormatter {
 		Email:      user.Email,
 		Occupation: user.Occupation,
 		Token:      token,
+		ImageURL:   user.AvatarFileName,
 	}
 }
