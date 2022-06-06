@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"bwastartup/auth"
 	"bwastartup/helper"
 	"bwastartup/user"
 	"fmt"
@@ -11,17 +12,17 @@ import (
 
 type userHandler struct {
 	userService user.Service
+	authService auth.Service
 }
 
-func NewUserHandler(userService user.Service) *userHandler {
-	return &userHandler{userService}
+func NewUserHandler(userService user.Service, authService auth.Service) *userHandler {
+	return &userHandler{userService, authService}
 }
 
 func (h *userHandler) RegisterUser(c *gin.Context) {
-
 	var input user.RegisterUserInput
-	err := c.ShouldBindJSON(&input)
 
+	err := c.ShouldBindJSON(&input)
 	if err != nil {
 		errors := helper.FormatValidationError(err)
 		errorsMessage := gin.H{"errors": errors}
@@ -37,7 +38,14 @@ func (h *userHandler) RegisterUser(c *gin.Context) {
 		return
 	}
 
-	formatter := user.FormatUser(newUser, "tokentokentoken")
+	token, err := h.authService.GenerateToken(newUser.ID)
+	if err != nil {
+		errorsMessage := gin.H{"errors": err}
+		response := helper.APIResponse("Something Wrong With Token", http.StatusBadRequest, "error", errorsMessage)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	formatter := user.FormatUser(newUser, token)
 	response := helper.APIResponse("User registered successfully", http.StatusOK, "success", formatter)
 
 	c.JSON(http.StatusOK, response)
@@ -61,7 +69,20 @@ func (h *userHandler) Login(c *gin.Context) {
 	loggedinUser, err := h.userService.Login(input)
 
 	if err != nil {
+		response := helper.APIResponse("Invalid input", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
 
+	token, err := h.authService.GenerateToken(loggedinUser.ID)
+	if err != nil {
+		errorsMessage := gin.H{"errors": err}
+		response := helper.APIResponse("Something Wrong With Token", http.StatusBadRequest, "error", errorsMessage)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	if err != nil {
 		errorsMessage := gin.H{"errors": err.Error()}
 
 		response := helper.APIResponse("Invalid input", http.StatusUnprocessableEntity, "error", errorsMessage)
@@ -69,7 +90,7 @@ func (h *userHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, response)
 		return
 	}
-	formatter := user.FormatUser(loggedinUser, "tokentokentoken")
+	formatter := user.FormatUser(loggedinUser, token)
 	response := helper.APIResponse("Login Success", http.StatusOK, "succes", formatter)
 
 	c.JSON(http.StatusOK, response)
