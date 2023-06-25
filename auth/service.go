@@ -54,9 +54,10 @@ func (s *jwtService) ValidateToken(encodedToken string) (*jwt.Token, error) {
 		}
 		return []byte(SECRET_KEY), nil
 	})
+
 	if err != nil {
 		return token, err
 	}
-	
+
 	return token, nil
 }
