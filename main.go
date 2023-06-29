@@ -2,9 +2,11 @@ package main
 
 import (
 	"bwastartup/auth"
+	"bwastartup/campaign"
 	"bwastartup/handler"
 	"bwastartup/helper"
 	"bwastartup/user"
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"log"
 	"net/http"
@@ -24,6 +26,20 @@ func main() {
 	}
 
 	userRepository := user.NewRepository(db)
+	campaignRepository := campaign.NewRepository(db)
+
+	campaigns, err := campaignRepository.FindByUserID(10)
+
+	for _, campaigns := range campaigns {
+		if len(campaigns.CampaignImage) > 0 {
+			fmt.Println(campaigns.Name)
+			fmt.Println(len(campaigns.CampaignImage))
+			fmt.Println(campaigns.CampaignImage[0].FileName)
+		}
+	}
+	fmt.Println(len(campaigns))
+	fmt.Println("test")
+
 	userService := user.NewService(userRepository)
 	authService := auth.NewService()
 
