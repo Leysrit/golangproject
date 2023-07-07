@@ -68,10 +68,7 @@ func (h *campaignHandler) CreateCampaign(c *gin.Context) {
 
 	newCampaign, err := h.service.CreateCampaign(input)
 	if err != nil {
-		errors := helper.FormatValidationError(err)
-		errorsMessage := gin.H{"error": errors}
-
-		response := helper.APIResponse("failed to create campaign", http.StatusBadRequest, "error", errorsMessage)
+		response := helper.APIResponse("failed to create campaign", http.StatusBadRequest, "error", nil)
 		c.JSON(http.StatusBadRequest, response)
 		return
 	}
@@ -79,4 +76,43 @@ func (h *campaignHandler) CreateCampaign(c *gin.Context) {
 	response := helper.APIResponse("success to create campaign", http.StatusOK, "success", campaign.FormatCampaign(newCampaign))
 	c.JSON(http.StatusOK, response)
 	return
+}
+
+func (h *campaignHandler) UpdateCampaign(c *gin.Context) {
+	//inputID, _ := strconv.Atoi(c.Query("user_id"))
+
+	var inputID campaign.GetCampaignDetailInput
+	//log.Println(input)
+	err := c.ShouldBindUri(&inputID)
+	if err != nil {
+		response := helper.APIResponse("failed t to update campaigns", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	var inputData campaign.CreateCampaignInput
+	err = c.ShouldBindJSON(&inputData)
+
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		errorsMessage := gin.H{"error": errors}
+
+		response := helper.APIResponse("failed to a update campaign", http.StatusBadRequest, "error", errorsMessage)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	currentUser := c.MustGet("currentUser").(user.User)
+	inputData.User = currentUser
+
+	updatedCampaign, err := h.service.UpdateCampaign(inputID, inputData)
+	if err != nil {
+
+		response := helper.APIResponse("failed to s update campaigns", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	response := helper.APIResponse("success to update campaign", http.StatusOK, "success", campaign.FormatCampaign(updatedCampaign))
+	c.JSON(http.StatusOK, response)
+	return
+
 }
